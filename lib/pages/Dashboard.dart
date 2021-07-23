@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:final_year_project_gnfs/widgets/draweritems.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 
@@ -21,6 +22,7 @@ class _DashboardState extends State<Dashboard> {
         centerTitle: true,
         backgroundColor: Color(0xFFFF5C00),
       ),
+      drawer: DrawerItems(),
       body: Container(),
     );
   }
