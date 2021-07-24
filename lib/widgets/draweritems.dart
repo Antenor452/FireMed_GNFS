@@ -28,10 +28,12 @@ class DrawerItems extends StatelessWidget {
             ),
             ListTile(
               title: Text('Logout'),
-              onTap: () {
+              onTap: () async {
                 Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (context) => Login()),
                     (route) => false);
+
+                await FirebaseAuth.instance.signOut();
               },
             )
           ],

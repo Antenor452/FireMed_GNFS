@@ -15,6 +15,22 @@ class _LoginState extends State<Login> {
   bool hidepassword = true;
   String? _email;
   String? _password;
+  void CheckType() async {
+    var res = await FirebaseFirestore.instance
+        .collection('Users')
+        .where('Email', isEqualTo: _email)
+        .where('Type', isEqualTo: 'FireStation')
+        .get();
+
+    if (res.size == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('You do not have permission to use this app')));
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => Login()), (route) => false);
+      FirebaseAuth.instance.signOut();
+    }
+    print(res.size);
+  }
 
   void login() async {
     FocusScope.of(context).unfocus();
@@ -25,13 +41,7 @@ class _LoginState extends State<Login> {
         FirebaseAuth.instance
             .signInWithEmailAndPassword(
                 email: _email.toString(), password: _password.toString())
-            .then((value) async* {
-          var result = await FirebaseFirestore.instance
-              .collection('Users')
-              .where('Email', isEqualTo: _email)
-              .get();
-          print(result);
-        });
+            .then((value) => {CheckType()});
       } catch (e) {
         print(e);
       }

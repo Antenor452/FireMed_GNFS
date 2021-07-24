@@ -26,18 +26,22 @@ class _MyAppState extends State<MyApp> {
 
     super.initState();
     Firebase.initializeApp().whenComplete(() {
-      FirebaseAuth.instance.authStateChanges().listen((user) {
-        if (user == null) {
-          print('User is not signed in');
-          setState(() {
-            home = Login();
-          });
-        } else {
-          setState(() {
-            home = Dashboard();
-          });
-        }
-      });
+      CheckIsSignedIn();
+    });
+  }
+
+  void CheckIsSignedIn() {
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        print('User is not signed in');
+        setState(() {
+          home = Login();
+        });
+      } else {
+        setState(() {
+          home = Dashboard();
+        });
+      }
     });
   }
 
