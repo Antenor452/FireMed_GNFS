@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:final_year_project_gnfs/pages/Dashboard.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,10 @@ class _LoginState extends State<Login> {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => Login()), (route) => false);
       FirebaseAuth.instance.signOut();
+    }
+    {
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => Dashboard()));
     }
     print(res.size);
   }
