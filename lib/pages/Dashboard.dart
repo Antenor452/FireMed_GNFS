@@ -19,7 +19,7 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    print(_getDbList);
+    print(_getDbList.once());
 
     return Scaffold(
       appBar: AppBar(
@@ -51,7 +51,40 @@ class _DashboardState extends State<Dashboard> {
                 );
               } else {
                 print('not empty');
-                return Container();
+                return Container(
+                  child: ListTile(
+                    title: Container(
+                      width: double.infinity,
+                      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                          color: Colors.white, border: Border.all()),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('FIDAS ID :'),
+                              Text(Fidasmap['ID'])
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('STATUS:'),
+                              Text(Fidasmap['Status'] == 0
+                                  ? 'No ALert'
+                                  : 'Alert')
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
               }
             }),
       ),
