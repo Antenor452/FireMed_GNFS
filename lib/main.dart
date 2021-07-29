@@ -25,9 +25,7 @@ class _MyAppState extends State<MyApp> {
     // TODO: implement initState
 
     super.initState();
-    Firebase.initializeApp().whenComplete(() {
-      CheckIsSignedIn();
-    });
+    Firebase.initializeApp().whenComplete(() => CheckIsSignedIn());
   }
 
   void CheckIsSignedIn() {

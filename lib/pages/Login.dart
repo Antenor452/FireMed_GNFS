@@ -28,12 +28,13 @@ class _LoginState extends State<Login> {
           content: Text('You do not have permission to use this app')));
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => Login()), (route) => false);
-      FirebaseAuth.instance.signOut();
-    }
-    {
+    } else {
+      FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _email.toString(), password: _password.toString());
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => Dashboard()));
     }
+
     print(res.size);
   }
 
@@ -43,10 +44,7 @@ class _LoginState extends State<Login> {
     if (cform!.validate()) {
       cform.save();
       try {
-        FirebaseAuth.instance
-            .signInWithEmailAndPassword(
-                email: _email.toString(), password: _password.toString())
-            .then((value) => {CheckType()});
+        CheckType();
       } catch (e) {
         print(e);
       }
