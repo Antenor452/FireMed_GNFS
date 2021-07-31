@@ -89,6 +89,7 @@ class _DashboardState extends State<Dashboard> {
       child: InkWell(
         child: Card(
           elevation: 2,
+          margin: EdgeInsets.symmetric(horizontal: 12),
           child: Container(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),

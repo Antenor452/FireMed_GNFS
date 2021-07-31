@@ -12,20 +12,9 @@ class DrawerItems extends StatelessWidget {
       child: Drawer(
         child: ListView(
           children: [
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              child: Row(
-                children: [
-                  Container(child: Icon(Icons.person_rounded)),
-                  SizedBox(width: 8),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [Text('Username'), Text('View profile')],
-                  )
-                ],
-              ),
-            ),
+            DrawerHeader(
+                decoration: BoxDecoration(color: Color(0xFFFF5C00)),
+                child: Container()),
             ListTile(
               title: Text('Logout'),
               onTap: () async {
