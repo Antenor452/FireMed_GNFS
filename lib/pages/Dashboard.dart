@@ -13,28 +13,30 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   Query _getDbList = FirebaseDatabase.instance.reference().child('Fidas');
+  String? Fidasusername;
+  String? Fidasphone;
+  String? retrievalstatus = 'empty';
 
   void initState() {
     super.initState();
   }
 
-  void getdetails(String? id, String? username, String? phone) async {
+  void getdetails(String? id) async {
     var res = await firestore.FirebaseFirestore.instance
         .collection('Users')
         .where('Fidas ID', isEqualTo: id)
         .get();
-    var data = res.docs.first;
-    print(res.size);
+    var data = res.docs.first.data();
+
     setState(() {
-      username = data.data()['Username'];
-      phone = data.data()['Phone'];
+      Fidasusername = data['Username'];
+      Fidasphone = data['Phone'];
+      retrievalstatus = 'done';
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    print(_getDbList);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -45,16 +47,16 @@ class _DashboardState extends State<Dashboard> {
       ),
       drawer: DrawerItems(),
       body: Container(
+        decoration: BoxDecoration(color: Color(0xFFE5E5E5)),
         child: FirebaseAnimatedList(
             query: _getDbList,
             itemBuilder: (BuildContext context, DataSnapshot snapshot,
                 Animation<double> animation, int index) {
               Map Fidasmap = snapshot.value;
               String? Fidasid = Fidasmap['ID'];
+
               String? FidasStatus = Fidasmap['Status'].toString();
-              String? Fidasusername;
-              String? Fidasphone;
-              getdetails(Fidasmap['ID'], Fidasusername, Fidasphone);
+              getdetails(Fidasid);
 
               print('working');
 
@@ -68,7 +70,13 @@ class _DashboardState extends State<Dashboard> {
                 );
               } else {
                 print('not empty');
-                return _FidasList(Fidasmap['ID'], Fidasusername, Fidasphone);
+                return retrievalstatus == 'empty'
+                    ? Container(
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : _FidasList(Fidasmap['ID'], Fidasusername, Fidasphone);
               }
             }),
       ),
@@ -76,31 +84,64 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _FidasList(String? id, String? username, String? phone) {
-    return InkWell(
-      child: Card(
-        child: Container(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text('FIDAS ID : ' + id.toString()),
-              Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: InkWell(
+        child: Card(
+          elevation: 2,
+          child: Container(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Column(
-                    children: [
-                      Text(username.toString()),
-                      Text(phone.toString())
-                    ],
+                  Text('FIDAS ID : ' + id.toString()),
+                  SizedBox(
+                    height: 18,
                   ),
-                  InkWell(
-                    child: Container(
-                      child: Center(
-                        child: Text('Track'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        child: Column(
+                          children: [
+                            Text(username.toString()),
+                            SizedBox(
+                              height: 12,
+                            ),
+                            Text(phone.toString())
+                          ],
+                        ),
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: InkWell(
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFF5C00),
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Track',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 14),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
                   )
                 ],
-              )
-            ],
+              ),
+            ),
           ),
         ),
       ),
