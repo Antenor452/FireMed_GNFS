@@ -11,6 +11,7 @@ class DrawerItems extends StatelessWidget {
       color: Colors.orange,
       child: Drawer(
         child: ListView(
+          padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
                 decoration: BoxDecoration(color: Color(0xFFFF5C00)),
