@@ -41,7 +41,8 @@ class _TrackerState extends State<Tracker> {
     super.initState();
   }
 
-  GoogleMapController? _mapController;
+  Completer<GoogleMapController> _mapController = Completer();
+
   Marker? _origin;
   Marker? _destination;
   static final CameraPosition _source =
@@ -60,17 +61,23 @@ class _TrackerState extends State<Tracker> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         child: GoogleMap(
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            initialCameraPosition: _source),
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          initialCameraPosition: _source,
+          onMapCreated: (GoogleMapController controller) {
+            _mapController.complete(controller);
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.white,
         foregroundColor: Color(0xFFFF5C00),
         child: Icon(Icons.center_focus_strong),
-        onPressed: () {
-          _mapController
-              ?.animateCamera(CameraUpdate.newCameraPosition(_source));
+        onPressed: () async {
+          GoogleMapController _googleMapController =
+              await _mapController.future;
+          _googleMapController
+              .animateCamera(CameraUpdate.newCameraPosition(_source));
         },
       ),
     );
