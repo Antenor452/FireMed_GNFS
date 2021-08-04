@@ -1,3 +1,4 @@
+import 'package:final_year_project_gnfs/pages/Tracker.dart';
 import 'package:final_year_project_gnfs/widgets/draweritems.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
@@ -58,20 +59,18 @@ class _DashboardState extends State<Dashboard> {
               String? FidasStatus = Fidasmap['Status'].toString();
               getdetails(Fidasid);
 
-              print('working');
-
               if (Fidasmap.isEmpty) {
-                print('isempty');
-
                 return Container(
                   child: Center(
                     child: Text('No registered user'),
                   ),
                 );
               } else {
-                print('not empty');
                 return retrievalstatus == 'empty'
                     ? Container(
+                        margin: EdgeInsets.symmetric(
+                          vertical: 15,
+                        ),
                         child: Center(
                           child: CircularProgressIndicator(),
                         ),
@@ -121,6 +120,10 @@ class _DashboardState extends State<Dashboard> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 8),
                         child: InkWell(
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => Tracker()));
+                          },
                           child: Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 24, vertical: 6),
