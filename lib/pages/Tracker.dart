@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Tracker extends StatefulWidget {
-  Tracker({Key? key}) : super(key: key);
+  LatLng destination;
+  Tracker({Key? key, required this.destination}) : super(key: key);
 
   @override
   _TrackerState createState() => _TrackerState();
@@ -42,13 +43,19 @@ class _TrackerState extends State<Tracker> {
   }
 
   Completer<GoogleMapController> _mapController = Completer();
+  LatLng _livepos = LatLng(0, 0);
 
-  Marker? _origin;
-  Marker? _destination;
+  Marker _origin = Marker(
+      markerId: MarkerId('Location'),
+      infoWindow: InfoWindow(title: 'You'),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      position: LatLng(37.773972, -122.431297));
+
   static final CameraPosition _source =
       CameraPosition(target: LatLng(37.773972, -122.431297), zoom: 11.5);
   @override
   Widget build(BuildContext context) {
+    print(widget.destination.latitude);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -67,6 +74,7 @@ class _TrackerState extends State<Tracker> {
           onMapCreated: (GoogleMapController controller) {
             _mapController.complete(controller);
           },
+          markers: {_origin},
         ),
       ),
       floatingActionButton: FloatingActionButton(

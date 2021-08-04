@@ -4,6 +4,7 @@ import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Dashboard extends StatefulWidget {
   Dashboard({Key? key}) : super(key: key);
@@ -17,6 +18,9 @@ class _DashboardState extends State<Dashboard> {
   String? Fidasusername;
   String? Fidasphone;
   String? retrievalstatus = 'empty';
+  String? Lat;
+  String? Lng;
+  LatLng? _destination;
 
   void initState() {
     super.initState();
@@ -56,6 +60,10 @@ class _DashboardState extends State<Dashboard> {
               Map Fidasmap = snapshot.value;
               String? Fidasid = Fidasmap['ID'];
 
+              LatLng destination = LatLng(
+                  double.parse(Fidasmap['Latitude'].toString()),
+                  double.parse(Fidasmap['Longitude'].toString()));
+
               String? FidasStatus = Fidasmap['Status'].toString();
               getdetails(Fidasid);
 
@@ -75,14 +83,16 @@ class _DashboardState extends State<Dashboard> {
                           child: CircularProgressIndicator(),
                         ),
                       )
-                    : _FidasList(Fidasmap['ID'], Fidasusername, Fidasphone);
+                    : _FidasList(
+                        Fidasmap['ID'], Fidasusername, Fidasphone, destination);
               }
             }),
       ),
     );
   }
 
-  Widget _FidasList(String? id, String? username, String? phone) {
+  Widget _FidasList(
+      String? id, String? username, String? phone, LatLng destination) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: InkWell(
@@ -122,7 +132,9 @@ class _DashboardState extends State<Dashboard> {
                         child: InkWell(
                           onTap: () {
                             Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => Tracker()));
+                                builder: (context) => Tracker(
+                                      destination: destination,
+                                    )));
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(
