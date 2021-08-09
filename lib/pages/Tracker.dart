@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -13,14 +14,22 @@ class Tracker extends StatefulWidget {
 }
 
 class _TrackerState extends State<Tracker> {
+  String apiKey = 'AIzaSyAWR7JmiMchbbYFmLv4RHIKIV4wT6THask';
+  PolylinePoints polylinePoints = PolylinePoints();
+  late List<PointLatLng> polyline;
+  late PolylineResult result;
   bool createMarkers = false;
   late Position post;
   late Future<Position> position;
+  late double originlat;
+  late double originlon;
   Marker? _origin;
   Completer<GoogleMapController> _mapController = Completer();
   Marker? _detsi;
   static final CameraPosition _source =
       CameraPosition(target: LatLng(37.773972, -122.431297), zoom: 11.5);
+  late CameraPosition _start;
+
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -36,6 +45,13 @@ class _TrackerState extends State<Tracker> {
       }
     }
     post = await Geolocator.getCurrentPosition();
+    originlat = post.latitude;
+    originlon = post.longitude;
+    setState(() {
+      _start = CameraPosition(target: LatLng(originlat, originlon), zoom: 13.5);
+    });
+    GoogleMapController _googleMapController = await _mapController.future;
+    _googleMapController.animateCamera(CameraUpdate.newCameraPosition(_start));
     print(post);
     return await Geolocator.getCurrentPosition();
   }
@@ -57,14 +73,26 @@ class _TrackerState extends State<Tracker> {
     });
   }
 
+  setpolyline() async {
+    result = await polylinePoints.getRouteBetweenCoordinates(
+        apiKey,
+        PointLatLng(originlat, originlon),
+        PointLatLng(widget.destination.latitude, widget.destination.longitude));
+    setState(() {
+      polyline = result.points.toList();
+    });
+    print(polyline);
+  }
+
   @override
   void initState() {
     super.initState();
     _determinePosition().then((value) {
+      createMarker();
+      setpolyline();
       setState(() {
         createMarkers = true;
       });
-      createMarker();
     });
   }
 
@@ -82,14 +110,14 @@ class _TrackerState extends State<Tracker> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         child: GoogleMap(
-          myLocationEnabled: false,
-          myLocationButtonEnabled: false,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: true,
           zoomControlsEnabled: true,
           initialCameraPosition: _source,
           onMapCreated: (GoogleMapController controller) {
             _mapController.complete(controller);
           },
-          markers: createMarkers ? {_origin!.clone(), _detsi!.clone()} : {},
+          markers: createMarkers ? {_detsi!.clone()} : {},
         ),
       ),
       floatingActionButton: Align(
