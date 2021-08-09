@@ -16,7 +16,8 @@ class Tracker extends StatefulWidget {
 class _TrackerState extends State<Tracker> {
   String apiKey = 'AIzaSyAWR7JmiMchbbYFmLv4RHIKIV4wT6THask';
   PolylinePoints polylinePoints = PolylinePoints();
-  late List<PointLatLng> polyline;
+  List<PointLatLng> polylineCordinates = [];
+  Set<Polyline> _polylines = {};
   late PolylineResult result;
   bool createMarkers = false;
   late Position post;
@@ -74,14 +75,12 @@ class _TrackerState extends State<Tracker> {
   }
 
   setpolyline() async {
-    result = await polylinePoints.getRouteBetweenCoordinates(
-        apiKey,
-        PointLatLng(originlat, originlon),
-        PointLatLng(widget.destination.latitude, widget.destination.longitude));
+    result = await polylinePoints.getRouteBetweenCoordinates(apiKey,
+        PointLatLng(originlat, originlon), PointLatLng(6.664220, -1.554187));
     setState(() {
-      polyline = result.points.toList();
+      polylineCordinates = result.points.toList();
     });
-    print(polyline);
+    print(polylineCordinates);
   }
 
   @override
@@ -118,6 +117,7 @@ class _TrackerState extends State<Tracker> {
             _mapController.complete(controller);
           },
           markers: createMarkers ? {_detsi!.clone()} : {},
+          polygons: createMarkers ? {} : {},
         ),
       ),
       floatingActionButton: Align(
