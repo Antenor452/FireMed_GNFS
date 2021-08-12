@@ -16,9 +16,9 @@ class Tracker extends StatefulWidget {
 class _TrackerState extends State<Tracker> {
   String apiKey = 'AIzaSyAWR7JmiMchbbYFmLv4RHIKIV4wT6THask';
   PolylinePoints polylinePoints = PolylinePoints();
-  List<PointLatLng> polylineCordinates = [];
+  List<LatLng> polylineCordinates = [];
   Set<Polyline> _polylines = {};
-  late PolylineResult result;
+
   bool createMarkers = false;
   late Position post;
   late Future<Position> position;
@@ -30,6 +30,33 @@ class _TrackerState extends State<Tracker> {
   static final CameraPosition _source =
       CameraPosition(target: LatLng(37.773972, -122.431297), zoom: 11.5);
   late CameraPosition _start;
+
+  late Stream<Position> positionStream;
+
+  Future<Stream> getpostionstream() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      print('Location services are disabled');
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        print('cant get permission');
+      }
+    }
+    positionStream = await Geolocator.getPositionStream();
+    positionStream.forEach((position) {
+      setState(() {
+        originlat = position.latitude;
+        originlon = position.longitude;
+        print(originlat.toString() + originlon.toString());
+      });
+    });
+    return positionStream;
+  }
 
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
@@ -48,12 +75,14 @@ class _TrackerState extends State<Tracker> {
     post = await Geolocator.getCurrentPosition();
     originlat = post.latitude;
     originlon = post.longitude;
+
     setState(() {
       _start = CameraPosition(target: LatLng(originlat, originlon), zoom: 13.5);
     });
     GoogleMapController _googleMapController = await _mapController.future;
     _googleMapController.animateCamera(CameraUpdate.newCameraPosition(_start));
     print(post);
+
     return await Geolocator.getCurrentPosition();
   }
 
@@ -75,10 +104,23 @@ class _TrackerState extends State<Tracker> {
   }
 
   setpolyline() async {
-    result = await polylinePoints.getRouteBetweenCoordinates(apiKey,
-        PointLatLng(originlat, originlon), PointLatLng(6.664220, -1.554187));
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+        apiKey,
+        PointLatLng(originlat, originlon),
+        PointLatLng(6.664220, -1.554187));
+
+    if (result.points.isNotEmpty) {
+      result.points.forEach((PointLatLng point) {
+        polylineCordinates.add(LatLng(point.latitude, point.longitude));
+      });
+    }
+
     setState(() {
-      polylineCordinates = result.points.toList();
+      Polyline polyline = Polyline(
+          polylineId: PolylineId('poly'),
+          color: Color.fromARGB(255, 40, 122, 198),
+          points: polylineCordinates);
+      _polylines.add(polyline);
     });
     print(polylineCordinates);
   }
@@ -86,9 +128,11 @@ class _TrackerState extends State<Tracker> {
   @override
   void initState() {
     super.initState();
-    _determinePosition().then((value) {
+
+    getpostionstream().then((value) {
       createMarker();
       setpolyline();
+
       setState(() {
         createMarkers = true;
       });
@@ -117,7 +161,7 @@ class _TrackerState extends State<Tracker> {
             _mapController.complete(controller);
           },
           markers: createMarkers ? {_detsi!.clone()} : {},
-          polygons: createMarkers ? {} : {},
+          polylines: createMarkers ? _polylines : {},
         ),
       ),
       floatingActionButton: Align(
