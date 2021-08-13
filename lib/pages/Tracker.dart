@@ -20,18 +20,17 @@ class _TrackerState extends State<Tracker> {
   Set<Polyline> _polylines = {};
 
   bool createMarkers = false;
+  late CameraPosition _start;
+  late Stream<Position> positionStream;
   late Position post;
   late Future<Position> position;
   late double originlat;
   late double originlon;
-  Marker? _origin;
+  late Marker _origin;
+  late Marker _detsi;
   Completer<GoogleMapController> _mapController = Completer();
-  Marker? _detsi;
-  static final CameraPosition _source =
-      CameraPosition(target: LatLng(37.773972, -122.431297), zoom: 11.5);
-  late CameraPosition _start;
-
-  late Stream<Position> positionStream;
+  static final CameraPosition _center =
+      CameraPosition(target: LatLng(0, 0), zoom: 11.5);
 
   Future<Stream> getpostionstream() async {
     bool serviceEnabled;
@@ -52,54 +51,18 @@ class _TrackerState extends State<Tracker> {
       setState(() {
         originlat = position.latitude;
         originlon = position.longitude;
-        print(originlat.toString() + originlon.toString());
       });
     });
     return positionStream;
-  }
-
-  Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      print('Location services are disabled');
-    }
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        print('cant get permission');
-      }
-    }
-    post = await Geolocator.getCurrentPosition();
-    originlat = post.latitude;
-    originlon = post.longitude;
-
-    setState(() {
-      _start = CameraPosition(target: LatLng(originlat, originlon), zoom: 13.5);
-    });
-    GoogleMapController _googleMapController = await _mapController.future;
-    _googleMapController.animateCamera(CameraUpdate.newCameraPosition(_start));
-    print(post);
-
-    return await Geolocator.getCurrentPosition();
   }
 
   void createMarker() {
     setState(() {
       _detsi = Marker(
           markerId: MarkerId('Destination'),
-          infoWindow: InfoWindow(title: 'Building'),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          position: widget.destination);
-
-      _origin = Marker(
-          markerId: MarkerId('Location'),
-          infoWindow: InfoWindow(title: 'You'),
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          position: LatLng(post.latitude, post.longitude));
+          position: LatLng(
+              widget.destination.latitude, widget.destination.longitude));
     });
   }
 
@@ -113,6 +76,9 @@ class _TrackerState extends State<Tracker> {
       result.points.forEach((PointLatLng point) {
         polylineCordinates.add(LatLng(point.latitude, point.longitude));
       });
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('!No possible route found')));
     }
 
     setState(() {
@@ -129,10 +95,9 @@ class _TrackerState extends State<Tracker> {
   void initState() {
     super.initState();
 
-    getpostionstream().then((value) {
+    getpostionstream().then((position) {
       createMarker();
       setpolyline();
-
       setState(() {
         createMarkers = true;
       });
@@ -154,13 +119,16 @@ class _TrackerState extends State<Tracker> {
         height: MediaQuery.of(context).size.height,
         child: GoogleMap(
           myLocationEnabled: true,
-          myLocationButtonEnabled: true,
           zoomControlsEnabled: true,
-          initialCameraPosition: _source,
+          initialCameraPosition: _center,
           onMapCreated: (GoogleMapController controller) {
             _mapController.complete(controller);
+            controller.moveCamera(
+                CameraUpdate.newLatLng(LatLng(originlat, originlon)));
+            controller.moveCamera(CameraUpdate.zoomTo(16));
+            print('lat is ' + originlat.toString());
           },
-          markers: createMarkers ? {_detsi!.clone()} : {},
+          markers: createMarkers ? {_detsi} : {},
           polylines: createMarkers ? _polylines : {},
         ),
       ),
@@ -169,17 +137,19 @@ class _TrackerState extends State<Tracker> {
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 18),
           child: FloatingActionButton(
-            backgroundColor: Colors.white,
-            foregroundColor: Color(0xFFFF5C00),
-            child: Icon(Icons.center_focus_strong),
-            onPressed: () async {
-              print(position.toString());
-              GoogleMapController _googleMapController =
-                  await _mapController.future;
-              _googleMapController
-                  .animateCamera(CameraUpdate.newCameraPosition(_source));
-            },
-          ),
+              backgroundColor: Colors.white,
+              foregroundColor: Color(0xFFFF5C00),
+              child: Icon(Icons.center_focus_strong),
+              onPressed: () async {
+                GoogleMapController _googleMapController =
+                    await _mapController.future;
+                _googleMapController
+                    .moveCamera(
+                        CameraUpdate.newLatLng(LatLng(originlat, originlon)))
+                    .then((value) {
+                  _googleMapController.animateCamera(CameraUpdate.zoomTo(16));
+                });
+              }),
         ),
       ),
     );
