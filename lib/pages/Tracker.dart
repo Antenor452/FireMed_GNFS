@@ -22,7 +22,6 @@ class _TrackerState extends State<Tracker> {
   late CameraPosition _start;
   late double originlat;
   late double originlon;
-  late Marker _origin;
   late Marker _detsi;
   late LocationData currentLocation;
   Location location = Location();
@@ -93,6 +92,9 @@ class _TrackerState extends State<Tracker> {
             points: polylineCordinates);
         _polylines.add(polyline);
       });
+    } else if (result.points.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No available route to destination')));
     }
   }
 
@@ -127,11 +129,10 @@ class _TrackerState extends State<Tracker> {
           initialCameraPosition: _center,
           onMapCreated: (GoogleMapController controller) {
             _mapController.complete(controller);
-            controller.moveCamera(
-                CameraUpdate.newLatLng(LatLng(originlat, originlon)));
-            controller.moveCamera(CameraUpdate.zoomTo(16));
+            controller.animateCamera(
+                CameraUpdate.newLatLngZoom(LatLng(originlat, originlon), 16));
           },
-          markers: createMarkers ? {} : {},
+          markers: createMarkers ? {_detsi} : {},
           polylines: createMarkers ? _polylines : {},
         ),
       ),
@@ -146,12 +147,9 @@ class _TrackerState extends State<Tracker> {
               onPressed: () async {
                 GoogleMapController _googleMapController =
                     await _mapController.future;
-                _googleMapController
-                    .moveCamera(
-                        CameraUpdate.newLatLng(LatLng(originlat, originlon)))
-                    .then((value) {
-                  _googleMapController.animateCamera(CameraUpdate.zoomTo(16));
-                });
+
+                _googleMapController.animateCamera(CameraUpdate.newLatLngZoom(
+                    LatLng(originlat, originlon), 16));
               }),
         ),
       ),
