@@ -1,10 +1,11 @@
 import 'package:final_year_project_gnfs/pages/Tracker.dart';
 import 'package:final_year_project_gnfs/widgets/draweritems.dart';
+import 'package:final_year_project_gnfs/widgets/fidasList.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 
 class Dashboard extends StatefulWidget {
   Dashboard({Key? key}) : super(key: key);
@@ -14,30 +15,18 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  Query _getDbList = FirebaseDatabase.instance.reference().child('Fidas');
-  String? Fidasusername;
-  String? Fidasphone;
+  Query _getDbList(String id) {
+    return FirebaseDatabase.instance.reference().child('Fidas').child(id);
+  }
+
+  Query _get = FirebaseDatabase.instance.reference().child('Fidas');
+
   String? retrievalstatus = 'empty';
   String? Lat;
   String? Lng;
   LatLng? _destination;
-
   void initState() {
     super.initState();
-  }
-
-  void getdetails(String? id) async {
-    var res = await firestore.FirebaseFirestore.instance
-        .collection('Users')
-        .where('Fidas ID', isEqualTo: id)
-        .get();
-    var data = res.docs.first.data();
-
-    setState(() {
-      Fidasusername = data['Username'];
-      Fidasphone = data['Phone'];
-      retrievalstatus = 'done';
-    });
   }
 
   @override
@@ -52,115 +41,24 @@ class _DashboardState extends State<Dashboard> {
       ),
       drawer: DrawerItems(),
       body: Container(
-        decoration: BoxDecoration(color: Color(0xFFE5E5E5)),
-        child: FirebaseAnimatedList(
-            query: _getDbList,
-            itemBuilder: (BuildContext context, DataSnapshot snapshot,
-                Animation<double> animation, int index) {
-              Map Fidasmap = snapshot.value;
-              String? Fidasid = Fidasmap['ID'];
+          decoration: BoxDecoration(color: Color(0xFFE5E5E5)),
+          child: FirebaseAnimatedList(
+              query: _get,
+              padding: EdgeInsets.zero,
+              itemBuilder: (BuildContext context, DataSnapshot snapshot,
+                  Animation<double> animation, int index) {
+                Map Fidas = snapshot.value;
 
-              LatLng destination = LatLng(
-                  double.parse(Fidasmap['Latitude'].toString()),
-                  double.parse(Fidasmap['Longitude'].toString()));
+                String idtxt = snapshot.key.toString();
 
-              String? FidasStatus = Fidasmap['Status'].toString();
-              getdetails(Fidasid);
-
-              if (Fidasmap.isEmpty) {
-                return Container(
-                  child: Center(
-                    child: Text('No registered user'),
-                  ),
-                );
-              } else {
-                return retrievalstatus == 'empty'
-                    ? Container(
-                        margin: EdgeInsets.symmetric(
-                          vertical: 15,
-                        ),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    : _FidasList(
-                        Fidasmap['ID'], Fidasusername, Fidasphone, destination);
-              }
-            }),
-      ),
-    );
-  }
-
-  Widget _FidasList(
-      String? id, String? username, String? phone, LatLng destination) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: InkWell(
-        child: Card(
-          elevation: 2,
-          margin: EdgeInsets.symmetric(horizontal: 12),
-          child: Container(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('FIDAS ID : ' + id.toString()),
-                  SizedBox(
-                    height: 18,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        child: Column(
-                          children: [
-                            Text(username.toString()),
-                            SizedBox(
-                              height: 12,
-                            ),
-                            Text(phone.toString())
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => Tracker(
-                                      destination: destination,
-                                    )));
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Color(0xFFFF5C00),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Track',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 14),
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+                if (Fidas.isNotEmpty) {
+                  return FidasList(id: idtxt, destination: LatLng(0, 0));
+                } else {
+                  return Container(
+                    child: Text('No Users registered'),
+                  );
+                }
+              })),
     );
   }
 }
