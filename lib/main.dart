@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:final_year_project_gnfs/pages/Login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,12 +34,17 @@ class _MyAppState extends State<MyApp> {
     FirebaseAuth.instance.authStateChanges().listen((user) {
       if (user == null) {
         print('User is not signed in');
-        setState(() {
-          home = Login();
+
+        Timer(Duration(seconds: 2), () {
+          setState(() {
+            home = Login();
+          });
         });
       } else {
-        setState(() {
-          home = Dashboard();
+        Timer(Duration(seconds: 2), () {
+          setState(() {
+            home = Dashboard();
+          });
         });
       }
     });

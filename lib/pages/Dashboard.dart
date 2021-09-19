@@ -24,7 +24,7 @@ class _DashboardState extends State<Dashboard> {
   String? retrievalstatus = 'empty';
   String? Lat;
   String? Lng;
-  LatLng? _destination;
+  late LatLng _destination;
   void initState() {
     super.initState();
   }
@@ -41,18 +41,59 @@ class _DashboardState extends State<Dashboard> {
       ),
       drawer: DrawerItems(),
       body: Container(
+          height: double.infinity,
           decoration: BoxDecoration(color: Color(0xFFE5E5E5)),
           child: FirebaseAnimatedList(
               query: _get,
               padding: EdgeInsets.zero,
+              shrinkWrap: true,
               itemBuilder: (BuildContext context, DataSnapshot snapshot,
                   Animation<double> animation, int index) {
                 Map Fidas = snapshot.value;
 
                 String idtxt = snapshot.key.toString();
+                double lat = double.parse(Fidas['Latitude'].toString());
+                double lon = double.parse(Fidas['Longitude'].toString());
+                _destination = LatLng(lat, lon);
 
                 if (Fidas.isNotEmpty) {
-                  return FidasList(id: idtxt, destination: LatLng(0, 0));
+                  print(Fidas);
+                  return Container(
+                    child: Column(
+                      children: [
+                        FidasList(
+                          id: idtxt,
+                          destination: _destination,
+                        ),
+                        Container(
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Text("Smoke Sensor Value :"),
+                                  Text(Fidas['SmokeValue'])
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    "Flame Sensor Value :",
+                                  ),
+                                  Text(Fidas['FlameValue'])
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text("Status Value :"),
+                                  Text(Fidas['Status'])
+                                ],
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  );
                 } else {
                   return Container(
                     child: Text('No Users registered'),

@@ -49,14 +49,18 @@ class _TrackerState extends State<Tracker> {
     }
     _locationdata = await location.getLocation();
     setState(() {
+      currentLocation = _locationdata;
       originlat = double.parse(_locationdata.latitude.toString());
       originlon = double.parse(_locationdata.longitude.toString());
     });
     location.onLocationChanged.listen((currentlocation) {
       setState(() {
-        _locationdata = currentlocation;
+        currentLocation = _locationdata;
         originlat = double.parse(_locationdata.latitude.toString());
         originlon = double.parse(_locationdata.longitude.toString());
+
+        setpolyline();
+
         print(_locationdata.latitude);
       });
     });
@@ -69,21 +73,27 @@ class _TrackerState extends State<Tracker> {
       _detsi = Marker(
           markerId: MarkerId('Destination'),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          position: LatLng(6.707048929943497, -1.6385803054345387));
+          position: LatLng(
+              widget.destination.latitude, widget.destination.longitude));
     });
   }
 
   setpolyline() async {
-    print('start');
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
         apiKey,
         PointLatLng(originlat, originlon),
-        PointLatLng(6.707048929943497, -1.6385803054345387));
-
-    if (result.points.isNotEmpty) {
-      result.points.forEach((element) {
-        polylineCordinates.add(LatLng(element.latitude, element.longitude));
-      });
+        PointLatLng(widget.destination.latitude, widget.destination.longitude));
+    if (polylineCordinates.isEmpty) {
+      if (result.points.isNotEmpty) {
+        result.points.forEach((element) {
+          polylineCordinates.add(LatLng(element.latitude, element.longitude));
+        });
+      } else {
+        polylineCordinates.clear();
+        result.points.forEach((element) {
+          polylineCordinates.add(LatLng(element.latitude, element.longitude));
+        });
+      }
 
       setState(() {
         Polyline polyline = Polyline(
@@ -129,8 +139,10 @@ class _TrackerState extends State<Tracker> {
           initialCameraPosition: _center,
           onMapCreated: (GoogleMapController controller) {
             _mapController.complete(controller);
-            controller.animateCamera(
-                CameraUpdate.newLatLngZoom(LatLng(originlat, originlon), 16));
+            Future.delayed(Duration(seconds: 1), () {
+              controller.animateCamera(
+                  CameraUpdate.newLatLngZoom(LatLng(6.6699564, -1.56178), 16));
+            });
           },
           markers: createMarkers ? {_detsi} : {},
           polylines: createMarkers ? _polylines : {},

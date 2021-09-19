@@ -31,8 +31,13 @@ class _LoginState extends State<Login> {
     } else {
       FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _email.toString(), password: _password.toString());
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => Dashboard()));
+      if (FirebaseAuth.instance.currentUser != null) {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => Dashboard()));
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Invalid details')));
+      }
     }
 
     print(res.size);

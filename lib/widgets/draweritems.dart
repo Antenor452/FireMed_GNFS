@@ -1,4 +1,5 @@
 import 'package:final_year_project_gnfs/pages/Login.dart';
+import 'package:final_year_project_gnfs/pages/Splash.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -25,7 +26,7 @@ class DrawerItems extends StatelessWidget {
 
                 await FirebaseAuth.instance.signOut();
               },
-            )
+            ),
           ],
         ),
       ),
